@@ -9,6 +9,7 @@ kkk not exist
 */
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"geecache"
@@ -37,6 +38,21 @@ func startCacheServer(addr string, addrs []string, gee *geecache.Group) {
 	peers := geecache.NewHTTPPool(addr)
 	peers.Set(addrs...)
 	gee.RegisterPeers(peers)
+	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
+		var data map[string]string
+		json.NewDecoder(r.Body).Decode(&data)
+		for k, v := range data {
+			gee.Set(k, geecache.NewByteView([]byte(v)))
+
+		}
+		w.WriteHeader(http.StatusOK)
+	})
+	http.HandleFunc("/delete", func(w http.ResponseWriter, r *http.Request) {
+		key := r.URL.Query().Get("key")
+		gee.Delete(key)
+		w.WriteHeader(http.StatusOK)
+	})
+
 	log.Println("geecache is running at", addr)
 	log.Fatal(http.ListenAndServe(addr[7:], peers))
 }
