@@ -19,7 +19,7 @@ type Group struct {
 	loader *singleflight.Group
 }
 
-// A Getter loads data for a key.
+// A Getter loads data for a key.roup
 type Getter interface {
 	Get(key string) ([]byte, error)
 }
@@ -75,6 +75,16 @@ func (g *Group) Get(key string) (ByteView, error) {
 	}
 
 	return g.load(key)
+}
+
+// Set adds a value to the cache.
+func (g *Group) Set(key string, value ByteView) {
+	g.mainCache.add(key, value)
+}
+
+// Delete removes a value from the cache.
+func (g *Group) Delete(key string) {
+	g.mainCache.remove(key)
 }
 
 // RegisterPeers registers a PeerPicker for choosing remote peer

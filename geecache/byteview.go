@@ -25,3 +25,8 @@ func cloneBytes(b []byte) []byte {
 	copy(c, b)
 	return c
 }
+
+// NewByteView creates a new ByteView from a byte slice.
+func NewByteView(b []byte) ByteView {
+	return ByteView{b: cloneBytes(b)}
+}
