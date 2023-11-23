@@ -2,11 +2,21 @@ package geecache
 
 import (
 	"fmt"
-	pb "geecache/geecachepb"
+	//pb "geecache/geecachepb"
 	"geecache/singleflight"
 	"log"
 	"sync"
 )
+
+type JsonRequest struct {
+	Group string `json:"group"`
+	Key   string `json:"key"`
+}
+
+type JsonResponse struct {
+	Value []byte `json:"value"`
+	Error string `json:"error,omitempty"`
+}
 
 // A Group is a cache namespace and associated data loaded spread over
 type Group struct {
@@ -102,10 +112,17 @@ func (g *Group) load(key string) (value ByteView, err error) {
 		if g.peers != nil {
 			if peer, ok := g.peers.PickPeer(key); ok {
 				if value, err = g.getFromPeer(peer, key); err == nil {
+					log.Printf("[Group.load] Successfully fetched data from peer for key: %s, value: %v", key, value)
 					return value, nil
 				}
 				log.Println("[GeeCache] Failed to get from peer", err)
 			}
+		}
+		value, err = g.getLocally(key)
+		if err == nil {
+			log.Printf("[Group.load] Successfully fetched data locally for key: %s, value: %v", key, value)
+		} else {
+			log.Printf("[Group.load] Error fetching data locally for key: %s, error: %v", key, err)
 		}
 
 		return g.getLocally(key)
@@ -133,14 +150,20 @@ func (g *Group) getLocally(key string) (ByteView, error) {
 }
 
 func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
-	req := &pb.Request{
+	req := &JsonRequest{
 		Group: g.name,
 		Key:   key,
 	}
-	res := &pb.Response{}
+	res := &JsonResponse{}
 	err := peer.Get(req, res)
 	if err != nil {
+		log.Printf("[getFromPeer] Error getting data from peer: %v", err)
 		return ByteView{}, err
+	}
+	if len(res.Value) == 0 {
+		log.Printf("[getFromPeer] Received empty data from peer for key: %s", key)
+	} else {
+		log.Printf("[getFromPeer] Successfully received data from peer for key: %s, value: %v", key, res.Value)
 	}
 	return ByteView{b: res.Value}, nil
 }
