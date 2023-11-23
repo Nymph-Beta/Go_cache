@@ -17,7 +17,7 @@ cs_num=$1
 #PORT_BASE=9526
 PORT_BASE=8000
 HOST_BASE=127.0.0.1
-MAX_ITER=10
+MAX_ITER=20
 
 function get_cs() {
 	port=$(( $PORT_BASE + $(shuf -i 1-$cs_num -n 1) ))

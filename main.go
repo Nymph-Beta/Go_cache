@@ -28,6 +28,7 @@ func createGroup() *geecache.Group {
 		func(key string) ([]byte, error) {
 			log.Println("[SlowDB] search key", key)
 			if v, ok := db[key]; ok {
+				log.Println("[SlowDB] Found value:", v) // <-- 添加这一行
 				return []byte(v), nil
 			}
 			return nil, fmt.Errorf("%s not exist", key)
@@ -63,11 +64,18 @@ func startAPIServer(apiAddr string, gee *geecache.Group) {
 			key := r.URL.Query().Get("key")
 			view, err := gee.Get(key)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				log.Printf("Error retrieving key %s: %v", key, err) // 添加此日志
+				//http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusInternalServerError)
 				return
 			}
-			w.Header().Set("Content-Type", "application/octet-stream")
-			w.Write(view.ByteSlice())
+			log.Printf("Retrieved key %s: %s", key, view.String()) // 添加此日志
+			// w.Header().Set("Content-Type", "application/octet-stream")
+			// w.Write(view.ByteSlice())
+			w.Header().Set("Content-Type", "application/json")
+			jsonResponse := fmt.Sprintf(`{"key":"%s","value":"%s"}`, key, view.String())
+			w.Write([]byte(jsonResponse))
+			log.Printf("Data written to response for key %s", key) // 添加此日志
 
 		}))
 	log.Println("fontend server is running at", apiAddr)
