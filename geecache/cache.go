@@ -1,8 +1,9 @@
 package geecache
 
 import (
-	"fmt"
+	//"fmt"
 	"geecache/lru"
+	"log"
 	"sync"
 )
 
@@ -21,15 +22,6 @@ func (c *cache) add(key string, value ByteView) {
 	c.lru.Add(key, value)
 }
 
-func (c *cache) remove(key string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.lru == nil {
-		return fmt.Errorf("key not found")
-	}
-	return c.lru.Remove(key)
-}
-
 func (c *cache) get(key string) (value ByteView, ok bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -42,4 +34,15 @@ func (c *cache) get(key string) (value ByteView, ok bool) {
 	}
 
 	return
+}
+
+func (c *cache) remove(key string) int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.lru == nil {
+		return 0
+	}
+	returnCount := c.lru.Remove(key)
+	log.Printf("returncount is %d", returnCount)
+	return returnCount
 }

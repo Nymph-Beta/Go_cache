@@ -1,8 +1,5 @@
 module geecache
 
-go 1.21.1
+go 1.13
 
-require (
-	github.com/golang/protobuf v1.5.3 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
-)
+require github.com/golang/protobuf v1.3.3

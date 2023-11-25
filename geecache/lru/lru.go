@@ -2,7 +2,7 @@ package lru
 
 import (
 	"container/list"
-	"fmt"
+	//"fmt"
 	"sync"
 )
 
@@ -64,21 +64,20 @@ func (c *Cache) Get(key string) (value Value, ok bool) {
 	return
 }
 
-// Remove removes the cache for a key.
-func (c *Cache) Remove(key string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if ele, ok := c.cache[key]; ok {
-		c.ll.Remove(ele)
-		kv := ele.Value.(*entry)
-		delete(c.cache, kv.key)
-		c.nbytes -= int64(len(kv.key)) + int64(kv.value.Len())
-		if c.OnEvicted != nil {
-			c.OnEvicted(kv.key, kv.value)
-		}
-		return nil
+// Remove removes the key you need
+func (cache *Cache) Remove(key string) int {
+	if cache.cache == nil {
+		return 0
 	}
-	return fmt.Errorf("key not found")
+	if ele, hit := cache.cache[key]; hit {
+		delete(cache.cache, key)
+		cache.nbytes -= int64(len(key)) + int64(ele.Value.(*entry).value.Len())
+		if cache.OnEvicted != nil {
+			cache.OnEvicted(key, ele.Value.(*entry).value)
+		}
+		return 1
+	}
+	return 0
 }
 
 // RemoveOldest removes the oldest item
