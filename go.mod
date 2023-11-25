@@ -1,3 +1,7 @@
 module example
 
-go 1.21.1
+go 1.13
+
+require geecache v0.0.0
+
+replace geecache => ./geecache

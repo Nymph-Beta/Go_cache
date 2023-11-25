@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  cache-server-1:
+    build: .
+    ports:
+      - "9527:9527"
+    command: ["./geecache_serve", "-port=9527"]
+
+  cache-server-2:
+    build: .
+    ports:
+      - "9528:9528"
+    command: ["./geecache_serve", "-port=9528"]
+
+  cache-server-3:
+    build: .
+    ports:
+      - "9529:9529"
+    command: ["./geecache_serve", "-port=9529"]
